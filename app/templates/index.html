@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Knowledger - Document Question Answering</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        line-height: 1.6;
+        color: #333;
+        background: linear-gradient(135deg, #8b5cf6 0%, #6b46c1 100%);
+        min-height: 100vh;
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+
+      .header {
+        text-align: center;
+        color: white;
+        margin-bottom: 30px;
+      }
+
+      .header h1 {
+        font-size: 2.5rem;
+        margin-bottom: 10px;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+      }
+
+      .header p {
+        font-size: 1.1rem;
+        opacity: 0.9;
+      }
+
+      .main-content {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 30px;
+        margin-bottom: 30px;
+      }
+
+      .card {
+        background: white;
+        border-radius: 15px;
+        padding: 30px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        transition: transform 0.3s ease;
+      }
+
+      .card:hover {
+        transform: translateY(-5px);
+      }
+
+      .card h2 {
+        color: #4a5568;
+        margin-bottom: 20px;
+        font-size: 1.5rem;
+        display: flex;
+        align-items: center;
+      }
+
+      .card h2::before {
+        content: "";
+        width: 4px;
+        height: 30px;
+        background: linear-gradient(135deg, #8b5cf6, #6b46c1);
+        margin-right: 15px;
+        border-radius: 2px;
+      }
+
+      .form-group {
+        margin-bottom: 20px;
+      }
+
+      .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+        color: #4a5568;
+      }
+
+      .form-control {
+        width: 100%;
+        padding: 12px 15px;
+        border: 2px solid #e2e8f0;
+        border-radius: 8px;
+        font-size: 1rem;
+        transition: border-color 0.3s ease, box-shadow 0.3s ease;
+      }
+
+      .form-control:focus {
+        border-color: #8b5cf6;
+        box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+        outline: none;
+      }
+
+      textarea.form-control {
+        min-height: 120px;
+        resize: vertical;
+      }
+
+      .file-upload {
+        position: relative;
+        display: inline-block;
+        width: 100%;
+      }
+
+      .file-upload input[type="file"] {
+        position: absolute;
+        left: -9999px;
+      }
+
+      .file-upload-label {
+        display: block;
+        padding: 15px 20px;
+        border: 2px dashed #cbd5e0;
+        border-radius: 8px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        background: #f7fafc;
+      }
+
+      .file-upload-label:hover {
+        border-color: #8b5cf6;
+        background: #edf2f7;
+      }
+
+      .file-upload-label.dragover {
+        border-color: #8b5cf6;
+        background: #f3e8ff;
+      }
+
+      .btn {
+        background: linear-gradient(135deg, #8b5cf6, #6b46c1);
+        color: white;
+        border: none;
+        padding: 12px 30px;
+        border-radius: 8px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(139, 92, 246, 0.4);
+      }
+
+      .btn:active {
+        transform: translateY(0);
+      }
+
+      .btn-block {
+        width: 100%;
+      }
+
+      .alerts {
+        margin-bottom: 20px;
+      }
+
+      .alert {
+        padding: 15px 20px;
+        border-radius: 8px;
+        margin-bottom: 15px;
+        font-weight: 500;
+      }
+
+      .alert-success {
+        background: #c6f6d5;
+        color: #22543d;
+        border: 1px solid #9ae6b4;
+      }
+
+      .alert-error {
+        background: #fed7d7;
+        color: #742a2a;
+        border: 1px solid #fc8181;
+      }
+
+      .response-section {
+        background: white;
+        border-radius: 15px;
+        padding: 30px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        margin-top: 30px;
+      }
+
+      .response-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        padding-bottom: 15px;
+        border-bottom: 2px solid #e2e8f0;
+      }
+
+      .response-meta {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 15px;
+        margin-bottom: 20px;
+      }
+
+      .meta-item {
+        background: #f7fafc;
+        padding: 10px 15px;
+        border-radius: 8px;
+        text-align: center;
+      }
+
+      .meta-item strong {
+        display: block;
+        color: #4a5568;
+        font-size: 0.9rem;
+      }
+
+      .meta-value {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #8b5cf6;
+      }
+
+      .response-content {
+        background: #f8f9fa;
+        padding: 20px;
+        border-radius: 8px;
+        border-left: 4px solid #8b5cf6;
+        margin: 20px 0;
+      }
+
+      .query-display {
+        background: #e6fffa;
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        border-left: 4px solid #38b2ac;
+      }
+
+      .sources-section {
+        margin-top: 25px;
+      }
+
+      .source-item {
+        background: #f7fafc;
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 10px;
+        border-left: 3px solid #cbd5e0;
+      }
+
+      .source-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+      }
+
+      .source-title {
+        font-weight: 600;
+        color: #4a5568;
+      }
+
+      .similarity-score {
+        background: #8b5cf6;
+        color: white;
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-size: 0.8rem;
+      }
+
+      .footer {
+        text-align: center;
+        color: white;
+        opacity: 0.8;
+        margin-top: 40px;
+      }
+
+      @media (max-width: 768px) {
+        .main-content {
+          grid-template-columns: 1fr;
+        }
+
+        .container {
+          padding: 15px;
+        }
+
+        .header h1 {
+          font-size: 2rem;
+        }
+
+        .response-meta {
+          grid-template-columns: 1fr 1fr;
+        }
+      }
+
+      .loading {
+        display: none;
+        text-align: center;
+        padding: 20px;
+      }
+
+      .spinner {
+        border: 4px solid #f3f3f3;
+        border-top: 4px solid #8b5cf6;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        animation: spin 1s linear infinite;
+        margin: 0 auto 15px;
+      }
+
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h1>🧠 Knowledger</h1>
+        <p>Upload PDF documents and ask questions to get intelligent answers</p>
+      </div>
+
+      <!-- Flash Messages -->
+      {% with messages = get_flashed_messages(with_categories=true) %} {% if
+      messages %}
+      <div class="alerts">
+        {% for category, message in messages %}
+        <div
+          class="alert alert-{{ 'success' if category == 'success' else 'error' }}"
+        >
+          {{ message }}
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %} {% endwith %}
+
+      <div class="main-content">
+        <!-- PDF Upload Section -->
+        <div class="card">
+          <h2>📄 Upload Document</h2>
+          <form method="POST" enctype="multipart/form-data">
+            <div class="form-group">
+              <label for="file">Select PDF File (Max 16MB)</label>
+              <div class="file-upload">
+                <input
+                  type="file"
+                  id="file"
+                  name="file"
+                  accept=".pdf"
+                  required
+                />
+                <label for="file" class="file-upload-label">
+                  <span>📎 Click to select PDF file or drag & drop</span>
+                </label>
+              </div>
+            </div>
+            <button type="submit" class="btn btn-block">
+              Upload & Process
+            </button>
+          </form>
+        </div>
+
+        <!-- Query Section -->
+        <div class="card">
+          <h2>💬 Ask Question</h2>
+          <form method="POST" id="queryForm">
+            <div class="form-group">
+              <label for="query">Your Question</label>
+              <textarea
+                name="query"
+                id="query"
+                class="form-control"
+                placeholder="Enter your question about the uploaded documents..."
+                required
+              >
+{{ query if query }}</textarea
+              >
+            </div>
+            <button type="submit" class="btn btn-block">Get Answer</button>
+          </form>
+
+          <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Processing your question...</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Response Section -->
+      {% if show_response and response %}
+      <div class="response-section">
+        <div class="response-header">
+          <h2>🎯 Answer</h2>
+          {% if response.cache_hit %}
+          <span
+            style="
+              background: #48bb78;
+              color: white;
+              padding: 5px 10px;
+              border-radius: 15px;
+              font-size: 0.8rem;
+            "
+          >
+            ⚡ Cached Response
+          </span>
+          {% endif %}
+        </div>
+
+        <div class="query-display">
+          <strong>Your Question:</strong> {{ query }}
+        </div>
+
+        <div class="response-meta">
+          <div class="meta-item">
+            <strong>Status</strong>
+            <div class="meta-value">{{ response.processing_status }}</div>
+          </div>
+          <div class="meta-item">
+            <strong>Sources Used</strong>
+            <div class="meta-value">{{ response.context_used }}</div>
+          </div>
+          <div class="meta-item">
+            <strong>Confidence</strong>
+            <div class="meta-value">
+              {{ "%.1f" | format(response.confidence_score * 100) }}%
+            </div>
+          </div>
+          {% if response.cache_hit %}
+          <div class="meta-item">
+            <strong>Cache Similarity</strong>
+            <div class="meta-value">
+              {{ "%.1f" | format(response.cache_similarity * 100) }}%
+            </div>
+          </div>
+          {% endif %}
+        </div>
+
+        <div class="response-content">
+          {{ response.answer|replace('<think>', '')|replace('</think>', '') }}
+        </div>
+
+        {% if response.sources %}
+        <div class="sources-section">
+          <h3 style="margin-bottom: 15px; color: #4a5568">📚 Sources</h3>
+          {% for source in response.sources %}
+          <div class="source-item">
+            <div class="source-header">
+              <span class="source-title"
+                >{{ source.document_id }} - {{ source.chunk_id }}</span
+              >
+              <span class="similarity-score"
+                >{{ "%.1f" | format(source.similarity_score * 100) }}%</span
+              >
+            </div>
+            <p style="color: #718096; font-size: 0.9rem">
+              {{ source.text_preview }}
+            </p>
+          </div>
+          {% endfor %}
+        </div>
+        {% endif %}
+      </div>
+      {% endif %}
+
+      <div class="footer">
+        <p>Knowledger - Powered by Redis Vector Search & Ollama</p>
+      </div>
+    </div>
+
+    <script>
+      const fileUpload = document.querySelector(".file-upload-label");
+      const fileInput = document.getElementById("file");
+
+      ["dragenter", "dragover", "dragleave", "drop"].forEach((eventName) => {
+        fileUpload.addEventListener(eventName, preventDefaults, false);
+        document.body.addEventListener(eventName, preventDefaults, false);
+      });
+
+      ["dragenter", "dragover"].forEach((eventName) => {
+        fileUpload.addEventListener(eventName, highlight, false);
+      });
+
+      ["dragleave", "drop"].forEach((eventName) => {
+        fileUpload.addEventListener(eventName, unhighlight, false);
+      });
+
+      fileUpload.addEventListener("drop", handleDrop, false);
+
+      function preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+
+      function highlight(e) {
+        fileUpload.classList.add("dragover");
+      }
+
+      function unhighlight(e) {
+        fileUpload.classList.remove("dragover");
+      }
+
+      function handleDrop(e) {
+        const dt = e.dataTransfer;
+        const files = dt.files;
+
+        if (files.length > 0) {
+          fileInput.files = files;
+          updateFileName(files[0].name);
+        }
+      }
+
+      fileInput.addEventListener("change", function (e) {
+        if (e.target.files.length > 0) {
+          updateFileName(e.target.files[0].name);
+        }
+      });
+
+      function updateFileName(name) {
+        const label = fileUpload.querySelector("span");
+        label.textContent = `📎 Selected: ${name}`;
+      }
+
+      const queryForm = document.getElementById("queryForm");
+      const loading = document.getElementById("loading");
+
+      queryForm.addEventListener("submit", function () {
+        loading.style.display = "block";
+      });
+
+      const textarea = document.getElementById("query");
+      textarea.addEventListener("input", function () {
+        this.style.height = "auto";
+        this.style.height = this.scrollHeight + "px";
+      });
+    </script>
+
+    <script>
+      function removeThinkTags(text) {
+        return text.replace(/<think>[\s\S]*?<\/think>/g, "");
+      }
+
+      document.addEventListener("DOMContentLoaded", function () {
+        const responseContent = document.querySelector(".response-content");
+        if (responseContent) {
+          responseContent.innerHTML = removeThinkTags(
+            responseContent.innerHTML
+          );
+        }
+      });
+    </script>
+  </body>
+</html>

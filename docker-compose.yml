@@ -1,0 +1,74 @@
+services:
+  ollama:
+    image: ollama/ollama:latest
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+      - ./scripts/init-ollama.sh:/init-ollama.sh
+    restart: unless-stopped
+    networks:
+      - rag_network
+    entrypoint: ["/bin/bash", "-c"]
+    command: |
+      "ollama serve &
+       sleep 5 &&
+       chmod +x /init-ollama.sh &&
+       /init-ollama.sh &
+       wait"
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "5000:5000"
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_DB=0
+      - OLLAMA_HOST=ollama
+      - OLLAMA_PORT=11434
+      - OLLAMA_MODEL=gemma3:1b
+      - SENTENCE_TRANSFORMER_MODEL=multi-qa-mpnet-base-dot-v1
+      - EMBEDDING_DIMENSION=768
+      - FLASK_DEBUG=True
+      - SECRET_KEY=secretkey321
+    depends_on:
+      - redis
+    volumes:
+      - ./uploads:/app/uploads
+    networks:
+      - rag_network
+
+  redis:
+    image: redis/redis-stack:latest
+    ports:
+      - "6379:6379"
+      - "8001:8001"
+    volumes:
+      - redis_data:/data
+    networks:
+      - rag_network
+    environment:
+      - REDIS_ARGS=--appendonly yes --maxmemory 512mb --maxmemory-policy allkeys-lru --bind 0.0.0.0 --protected-mode no
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 2s
+      timeout: 5s
+      retries: 50
+      start_period: 10s
+
+volumes:
+  redis_data:
+  ollama_data:
+
+networks:
+  rag_network:
+    driver: bridge 
