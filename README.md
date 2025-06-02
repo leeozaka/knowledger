@@ -27,7 +27,7 @@
 🐳 Docker Compose    →  One-command deployment
 🔗 Redis Stack       →  Vector database with RediSearch
 🤖 Ollama + Gemma3   →  Local LLM inference
-🧠 SentenceFormers   →  State-of-the-art embeddings
+🧠 SentenceTransformers   →  State-of-the-art embeddings
 ⚡ Flask API          →  RESTful backend
 🎨 Modern Web UI     →  Clean, responsive interface
 ```
